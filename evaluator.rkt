@@ -1,8 +1,10 @@
 #lang sicp
 
-(#%provide driver-loop)
-(#%provide eval1)
-(#%provide setup-environment)
+(#%provide eval1
+           setup-environment
+           compound-procedure?
+           procedure-parameters 
+           procedure-body)
 
 (define apply-in-underlying-scheme apply)
 
@@ -269,55 +271,7 @@
     (define-variable! 'false false initial-env)
     initial-env))
 
-(define the-global-environment (setup-environment))
-
 (define (primitive-procedure? proc)
   (tagged-list? proc 'primitive))
 
 (define (primitive-implementation proc) (cadr proc))
-
-(define input-prompt ";;; M-Eval input:")
-(define output-prompt ";;; M-Eval value:")
-(define (driver-loop)
-  (prompt-for-input input-prompt)
-  (let ((input (read)))
-    (let ((output (eval1 input the-global-environment)))
-      (announce-output output-prompt)
-      (user-print output)))
-  (driver-loop))
-
-(define (prompt-for-input string)
-  (newline) (newline) (display string) (newline))
-
-(define (announce-output string)
-  (newline) (display string) (newline))
-
-(define (user-print object)
-  (if (compound-procedure? object)
-      (display (list 'compound-procedure
-                     (procedure-parameters object)
-                     (procedure-body object)
-                     '<procedure-env>))
-      (display object)))
-
-;;;;;;;;;;;
-;; Usage ;;
-;;;;;;;;;;;
-
-;; (driver-loop)
-
-;;; M-Eval input:
-;; (define (append x y)
-;;  (if (null? x)
-;;      y
-;;      (cons (car x)
-;;            (append (cdr x) y))))
-
-;;; M-Eval value:
-;; ok
-
-;;; M-Eval input:
-;; (append '(a b c) '(d e f))
-
-;;; M-Eval value:
-;;(a b c d e f)
