@@ -59,12 +59,6 @@
                        env)
   'ok)
 
-(define (eval-definition exp env)
-  (define-variable! (definition-variable exp)
-    (eval1 (definition-value exp) env)
-    env)
-  'ok)
-
 (define (self-evaluating? exp)
   (cond ((number? exp) true)
         ((string? exp) true)
@@ -268,10 +262,19 @@
 
 (define (primitive-implementation proc) (cadr proc))
 
-(put 'eval 'define eval-definition)
 (put 'eval 'set! eval-assignment)
 (put 'eval 'if eval-if)
 (put 'eval 'lambda (lambda (exp env) (make-procedure (lambda-parameters exp) (lambda-body exp) env)))
 (put 'eval 'begin (lambda (exp env) (eval-sequence (begin-actions exp) env)))
 (put 'eval 'cond (lambda (exp env) (eval1 (cond->if exp) env)))
 (put 'eval 'quote (lambda (exp env) (text-of-quotation exp)))
+
+(define (install-definition-package)
+  (define (eval-definition exp env)
+    (define-variable! (definition-variable exp)
+      (eval1 (definition-value exp) env)
+      env)
+    'ok)
+  (put 'eval 'define eval-definition))
+
+(install-definition-package)
