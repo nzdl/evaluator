@@ -250,9 +250,9 @@
   (list (list 'car car)
         (list 'cdr cdr)
         (list 'cons cons)
-        (list 'null? null?)
+        (list 'null? null?)))
         ;;<more primitives>
-        ))
+        
 
 (define (primitive-procedure-names)
   (map car

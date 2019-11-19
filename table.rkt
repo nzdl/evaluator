@@ -32,5 +32,5 @@
                   (cons (list key-1
                               (cons key-2 value))
                         (cdr table)))))
-'ok)
+ 'ok)
 

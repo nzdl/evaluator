@@ -24,11 +24,11 @@
       (cdr datum)
       (error "Bad tagged datum -- CONTENTS" datum)))
 
-(define (apply-generic op arg)
-  (let ((tag (type-tag arg)))
-    (let ((proc (get op tag)))
+(define (apply-generic op . args)
+  (let ((type-tags (map type-tag args)))
+    (let ((proc (get op type-tags)))
       (if proc
-          (proc (contents arg))
+          (apply proc (map contents args))
           (error
             "No method for these types -- APPLY-GENERIC"
-            (list op tag))))))
+            (list op type-tags))))))
