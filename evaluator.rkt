@@ -1,5 +1,6 @@
 #lang sicp
 
+(#%require rackunit rackunit/text-ui "data-directed.rkt")
 (#%provide eval1
            setup-environment
            compound-procedure?
@@ -14,17 +15,7 @@
 (define (eval1 exp env)
   (cond ((self-evaluating? exp) exp)
         ((variable? exp) (lookup-variable-value exp env))
-        ((quoted? exp) (text-of-quotation exp))
-        ((assignment? exp) (eval-assignment exp env))
-        ((definition? exp) (eval-definition exp env))
-        ((if? exp) (eval-if exp env))
-        ((lambda? exp)
-         (make-procedure (lambda-parameters exp)
-                         (lambda-body exp)
-                         env))
-        ((begin? exp)
-         (eval-sequence (begin-actions exp) env))
-        ((cond? exp) (eval1 (cond->if exp) env))
+        ((get 'eval (car exp)) => (lambda (f) (f exp env)))
         ((application? exp)
          (apply1 (eval1 (operator exp) env)
                 (list-of-values (operands exp) env)))
@@ -275,3 +266,11 @@
   (tagged-list? proc 'primitive))
 
 (define (primitive-implementation proc) (cadr proc))
+
+(put 'eval 'define eval-definition)
+(put 'eval 'set! eval-assignment)
+(put 'eval 'if eval-if)
+(put 'eval 'lambda (lambda (exp env) (make-procedure (lambda-parameters exp) (lambda-body exp) env)))
+(put 'eval 'begin (lambda (exp env) (eval-sequence (begin-actions exp) env)))
+(put 'eval 'cond (lambda (exp env) (eval1 (cond->if exp) env)))
+(put 'eval 'quote (lambda (exp env) (text-of-quotation exp)))
