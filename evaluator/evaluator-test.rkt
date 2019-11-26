@@ -5,7 +5,7 @@
 (define env (setup-environment))
 
 (define (eval-exp exp)
-  (eval1 exp env))
+  (eval# exp env))
 
 (define (check-eval? expression expected)
   (check-equal? (eval-exp expression) expected))

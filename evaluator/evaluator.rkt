@@ -1,7 +1,7 @@
 #lang sicp
 
 (#%require rackunit rackunit/text-ui "../data-directed/data-directed.rkt")
-(#%provide eval1
+(#%provide eval#
            setup-environment
            compound-procedure?
            procedure-parameters 
@@ -12,17 +12,17 @@
 (define true #t)
 (define false #f)
 
-(define (eval1 exp env)
+(define (eval# exp env)
   (cond ((self-evaluating? exp) exp)
         ((variable? exp) (lookup-variable-value exp env))
         ((get 'eval (car exp)) => (lambda (f) (f exp env)))
         ((application? exp)
-         (apply1 (eval1 (operator exp) env)
+         (apply# (eval# (operator exp) env)
                 (list-of-values (operands exp) env)))
         (else
          (error "Unknown expression type -- EVAL" exp))))
 
-(define (apply1 procedure arguments)
+(define (apply# procedure arguments)
   (cond ((primitive-procedure? procedure)
          (apply-primitive-procedure procedure arguments))
         ((compound-procedure? procedure)
@@ -39,18 +39,18 @@
 (define (list-of-values exps env)
   (if (no-operands? exps)
       '()
-      (let ((first (eval1 (first-operand exps) env)))
+      (let ((first (eval# (first-operand exps) env)))
         (cons first
               (list-of-values (rest-operands exps) env)))))
 
 (define (eval-sequence exps env)
-  (cond ((last-exp? exps) (eval1 (first-exp exps) env))
-        (else (eval1 (first-exp exps) env)
+  (cond ((last-exp? exps) (eval# (first-exp exps) env))
+        (else (eval# (first-exp exps) env)
               (eval-sequence (rest-exps exps) env))))
 
 (define (eval-assignment exp env)
   (set-variable-value! (assignment-variable exp)
-                       (eval1 (assignment-value exp) env)
+                       (eval# (assignment-value exp) env)
                        env)
   'ok)
 
@@ -237,9 +237,9 @@
         (cadddr exp)
         'false))
   (define (eval-if exp env)
-    (if (true? (eval1 (if-predicate exp) env))
-        (eval1 (if-consequent exp) env)
-        (eval1 (if-alternative exp) env)))
+    (if (true? (eval# (if-predicate exp) env))
+        (eval# (if-consequent exp) env)
+        (eval# (if-alternative exp) env)))
   (put 'eval 'if eval-if))
 
 (define (install-cond-package)
@@ -268,7 +268,7 @@
 (define (install-definition-package)
   (define (eval-definition exp env)
     (define-variable! (definition-variable exp)
-      (eval1 (definition-value exp) env)
+      (eval# (definition-value exp) env)
       env)
     'ok)
   (put 'eval 'define eval-definition))
