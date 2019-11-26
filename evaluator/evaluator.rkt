@@ -1,16 +1,14 @@
 #lang sicp
 
-(#%require rackunit rackunit/text-ui "../data-directed/data-directed.rkt")
+(#%require rackunit
+           rackunit/text-ui
+           "primitives.rkt"
+           "../data-directed/data-directed.rkt")
 (#%provide eval#
            setup-environment
            compound-procedure?
            procedure-parameters 
            procedure-body)
-
-(define apply-in-underlying-scheme apply)
-
-(define true #t)
-(define false #f)
 
 (define (eval# exp env)
   (cond ((self-evaluating? exp) exp)
@@ -188,21 +186,6 @@
 (define (apply-primitive-procedure proc args)
   (apply-in-underlying-scheme
    (primitive-implementation proc) args))
-
-(define primitive-procedures
-  (list (list 'car car)
-        (list 'cdr cdr)
-        (list 'cons cons)
-        (list 'null? null?)))
-        ;;<more primitives>
-
-(define (primitive-procedure-names)
-  (map car
-       primitive-procedures))
-
-(define (primitive-procedure-objects)
-  (map (lambda (proc) (list 'primitive (cadr proc)))
-       primitive-procedures))
 
 (define (setup-environment)
   (let ((initial-env
