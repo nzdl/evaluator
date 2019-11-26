@@ -1,6 +1,6 @@
 #lang sicp
 
-(#%require rackunit rackunit/text-ui "data-directed.rkt")
+(#%require rackunit rackunit/text-ui "../data-directed/data-directed.rkt")
 (#%provide eval1
            setup-environment
            compound-procedure?

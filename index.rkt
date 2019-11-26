@@ -1,6 +1,6 @@
 #lang sicp
 
-(#%require "driver-loop.rkt")
+(#%require "evaluator/driver-loop.rkt")
 
 (driver-loop)
 
