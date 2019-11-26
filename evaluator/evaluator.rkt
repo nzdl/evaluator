@@ -43,11 +43,6 @@
         (cons first
               (list-of-values (rest-operands exps) env)))))
 
-(define (eval-if exp env)
-  (if (true? (eval1 (if-predicate exp) env))
-      (eval1 (if-consequent exp) env)
-      (eval1 (if-alternative exp) env)))
-
 (define (eval-sequence exps env)
   (cond ((last-exp? exps) (eval1 (first-exp exps) env))
         (else (eval1 (first-exp exps) env)
@@ -69,20 +64,14 @@
 (define (quoted? exp)
   (tagged-list? exp 'quote))
 
-(define (text-of-quotation exp) (cadr exp))
-
 (define (tagged-list? exp tag)
   (if (pair? exp)
       (eq? (car exp) tag)
       false))
 
-(define (assignment? exp)
-  (tagged-list? exp 'set!))
 (define (assignment-variable exp) (cadr exp))
 (define (assignment-value exp) (caddr exp))
 
-(define (definition? exp)
-  (tagged-list? exp 'define))
 (define (definition-variable exp)
   (if (symbol? (cadr exp))
       (cadr exp)
@@ -100,18 +89,9 @@
 (define (make-lambda parameters body)
   (cons 'lambda (cons parameters body)))
 
-(define (if? exp) (tagged-list? exp 'if))
-(define (if-predicate exp) (cadr exp))
-(define (if-consequent exp) (caddr exp))
-(define (if-alternative exp)
-  (if (not (null? (cdddr exp)))
-      (cadddr exp)
-      'false))
-
 (define (make-if predicate consequent alternative)
   (list 'if predicate consequent alternative))
 
-(define (begin? exp) (tagged-list? exp 'begin))
 (define (begin-actions exp) (cdr exp))
 (define (last-exp? seq) (null? (cdr seq)))
 (define (first-exp seq) (car seq))
@@ -129,29 +109,6 @@
 (define (no-operands? ops) (null? ops))
 (define (first-operand ops) (car ops))
 (define (rest-operands ops) (cdr ops))
-
-(define (cond? exp) (tagged-list? exp 'cond))
-(define (cond-clauses exp) (cdr exp))
-(define (cond-else-clause? clause)
-  (eq? (cond-predicate clause) 'else))
-(define (cond-predicate clause) (car clause))
-(define (cond-actions clause) (cdr clause))
-(define (cond->if exp)
-  (expand-clauses (cond-clauses exp)))
-
-(define (expand-clauses clauses)
-  (if (null? clauses)
-      'false                          ; no else clause
-      (let ((first (car clauses))
-            (rest (cdr clauses)))
-        (if (cond-else-clause? first)
-            (if (null? rest)
-                (sequence->exp (cond-actions first))
-                (error "ELSE clause isn't last -- COND->IF"
-                       clauses))
-            (make-if (cond-predicate first)
-                     (sequence->exp (cond-actions first))
-                     (expand-clauses rest))))))
 
 (define (true? x)
   (not (eq? x false)))
@@ -238,7 +195,6 @@
         (list 'cons cons)
         (list 'null? null?)))
         ;;<more primitives>
-        
 
 (define (primitive-procedure-names)
   (map car
@@ -263,11 +219,51 @@
 (define (primitive-implementation proc) (cadr proc))
 
 (put 'eval 'set! eval-assignment)
-(put 'eval 'if eval-if)
 (put 'eval 'lambda (lambda (exp env) (make-procedure (lambda-parameters exp) (lambda-body exp) env)))
 (put 'eval 'begin (lambda (exp env) (eval-sequence (begin-actions exp) env)))
-(put 'eval 'cond (lambda (exp env) (eval1 (cond->if exp) env)))
-(put 'eval 'quote (lambda (exp env) (text-of-quotation exp)))
+
+(define (install-quotation-package)
+  (define (text-of-quotation exp)
+    (cadr exp))
+  (define (eval-quotation exp env)
+    (text-of-quotation exp))
+  (put 'eval 'quote eval-quotation))
+
+(define (install-if-package)
+  (define (if-predicate exp) (cadr exp))
+  (define (if-consequent exp) (caddr exp))
+  (define (if-alternative exp)
+    (if (not (null? (cdddr exp)))
+        (cadddr exp)
+        'false))
+  (define (eval-if exp env)
+    (if (true? (eval1 (if-predicate exp) env))
+        (eval1 (if-consequent exp) env)
+        (eval1 (if-alternative exp) env)))
+  (put 'eval 'if eval-if))
+
+(define (install-cond-package)
+  (define (cond-clauses exp) (cdr exp))
+  (define (cond-else-clause? clause)
+    (eq? (cond-predicate clause) 'else))
+  (define (cond-predicate clause) (car clause))
+  (define (cond-actions clause) (cdr clause))
+  (define (expand-clauses clauses)
+    (if (null? clauses)
+        'false                          ; no else clause
+        (let ((first (car clauses))
+              (rest (cdr clauses)))
+          (if (cond-else-clause? first)
+              (if (null? rest)
+                  (sequence->exp (cond-actions first))
+                  (error "ELSE clause isn't last -- COND->IF"
+                        clauses))
+              (make-if (cond-predicate first)
+                      (sequence->exp (cond-actions first))
+                      (expand-clauses rest))))))
+  (define (cond->if exp env)
+    (expand-clauses (cond-clauses exp)))
+  (put 'eval 'cond cond->if))
 
 (define (install-definition-package)
   (define (eval-definition exp env)
@@ -277,4 +273,7 @@
     'ok)
   (put 'eval 'define eval-definition))
 
+(install-quotation-package)
+(install-if-package)
+(install-cond-package)
 (install-definition-package)
