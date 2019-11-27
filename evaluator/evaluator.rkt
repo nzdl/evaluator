@@ -4,6 +4,7 @@
            rackunit/text-ui
            "primitives.rkt"
            "environment.rkt"
+           "lib.rkt"
            "../data-directed/data-directed.rkt")
 (#%provide eval#
            setup-environment
@@ -108,11 +109,6 @@
 (define (no-operands? ops) (null? ops))
 (define (first-operand ops) (car ops))
 (define (rest-operands ops) (cdr ops))
-
-(define (true? x)
-  (not (eq? x false)))
-(define (false? x)
-  (eq? x false))
 
 (define (make-procedure parameters body env)
   (list 'procedure parameters body env))

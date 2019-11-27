@@ -4,7 +4,9 @@
            primitive-procedure-objects
            apply-in-underlying-scheme
            true
-           false)
+           false
+           true?
+           false?)
 
 (define apply-in-underlying-scheme apply)
 (define true #t)
@@ -24,3 +26,8 @@
 (define (primitive-procedure-objects)
   (map (lambda (proc) (list 'primitive (cadr proc)))
        primitive-procedures))
+
+(define (true? x)
+  (not (eq? x false)))
+(define (false? x)
+  (eq? x false))
