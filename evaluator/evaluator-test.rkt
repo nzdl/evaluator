@@ -1,20 +1,23 @@
 #lang sicp
 
-(#%require rackunit "evaluator.rkt")
+(#%require rackunit rackunit/text-ui "evaluator.rkt")
 
-(define env (setup-environment))
+(run-tests
+  (test-suite "evaluator"
+    (test-case "it runs"
+      (define env (setup-environment))
 
-(define (eval-exp exp)
-  (eval# exp env))
+      (define (eval-exp exp)
+        (eval# exp env))
 
-(define (check-eval? expression expected)
-  (check-equal? (eval-exp expression) expected))
+      (define (check-eval? expression expected)
+        (check-equal? (eval-exp expression) expected))
 
-(eval-exp
-  '(define (append x y)
-    (if (null? x)
-      y
-      (cons (car x)
-        (append (cdr x) y)))))
+      (eval-exp
+        '(define (append x y)
+          (if (null? x)
+            y
+            (cons (car x)
+              (append (cdr x) y)))))
 
-(check-eval? '(append '(a b c) '(d e f)) '(a b c d e f))
+      (check-eval? '(append '(a b c) '(d e f)) '(a b c d e f)))))
